@@ -1,0 +1,21 @@
+{
+    "os": "Linux-5.4.104+-x86_64-with-Ubuntu-18.04-bionic",
+    "python": "3.7.12",
+    "heartbeatAt": "2021-10-18T06:07:05.954884",
+    "startedAt": "2021-10-18T06:07:00.364652",
+    "docker": null,
+    "gpu": "Tesla K80",
+    "gpu_count": 1,
+    "cpu_count": 2,
+    "cuda": null,
+    "args": [
+        "-f",
+        "/root/.local/share/jupyter/runtime/kernel-c960724b-232d-4d98-a76a-6c36de1f41fb.json"
+    ],
+    "state": "running",
+    "program": "tutorial.ipynb",
+    "colab": "https://colab.research.google.com/notebook#fileId=1cdgiH3y4p_ECrLnu7sLCR1xAxZUODUJM",
+    "host": "b2c20373334b",
+    "username": "root",
+    "executable": "/usr/bin/python3"
+}
