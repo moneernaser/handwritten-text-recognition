@@ -397,7 +397,7 @@ def bluche(input_size, d_model):
     # cnn = MaxPooling2D(pool_size=(1, 4), strides=(1, 4), padding="valid")(cnn)
     cnn = MaxPooling2D(pool_size=(1, 2), strides=(1, 2), padding="valid")(cnn)
 
-    shape = cnn.shape
+    shape = cnn.get_shape()
     blstm = Reshape((shape[1], shape[2] * shape[3]))(cnn)
 
     blstm = Bidirectional(LSTM(units=128, return_sequences=True))(blstm)
@@ -452,7 +452,7 @@ def puigcerver(input_size, d_model):
     cnn = BatchNormalization()(cnn)
     cnn = LeakyReLU(alpha=0.01)(cnn)
 
-    shape = cnn.shape
+    shape = cnn.get_shape()
     blstm = Reshape((shape[1], shape[2] * shape[3]))(cnn)
 
     blstm = Bidirectional(LSTM(units=256, return_sequences=True, dropout=0.5))(blstm)
@@ -508,7 +508,7 @@ def flor(input_size, d_model):
 
     cnn = MaxPooling2D(pool_size=(1, 2), strides=(1, 2), padding="valid")(cnn)
 
-    shape = cnn.shape
+    shape = cnn.get_shape()
     bgru = Reshape((shape[1], shape[2] * shape[3]))(cnn)
 
     bgru = Bidirectional(GRU(units=128, return_sequences=True, dropout=0.5))(bgru)
@@ -577,7 +577,7 @@ def puigcerver_octconv(input_size, d_model):
 
     x = _create_octconv_last_block([high, low], 80, alpha)
 
-    shape = x.shape
+    shape = x.get_shape()
     blstm = Reshape((shape[1], shape[2] * shape[3]))(x)
 
     blstm = Bidirectional(LSTM(units=256, return_sequences=True, dropout=0.5))(blstm)
