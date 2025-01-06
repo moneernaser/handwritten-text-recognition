@@ -200,8 +200,7 @@ class HTRModel:
                              validation_data=validation_data, shuffle=shuffle,
                              class_weight=class_weight, sample_weight=sample_weight,
                              initial_epoch=initial_epoch, steps_per_epoch=steps_per_epoch,
-                             validation_steps=validation_steps, validation_freq=validation_freq,
-                             max_queue_size=max_queue_size, workers=workers,
+                             validation_steps=validation_steps, validation_freq=validation_freq, workers=workers,
                              use_multiprocessing=use_multiprocessing, **kwargs)
         return out
         
@@ -397,7 +396,7 @@ def bluche(input_size, d_model):
     # cnn = MaxPooling2D(pool_size=(1, 4), strides=(1, 4), padding="valid")(cnn)
     cnn = MaxPooling2D(pool_size=(1, 2), strides=(1, 2), padding="valid")(cnn)
 
-    shape = cnn.get_shape()
+    shape = cnn.shape
     blstm = Reshape((shape[1], shape[2] * shape[3]))(cnn)
 
     blstm = Bidirectional(LSTM(units=128, return_sequences=True))(blstm)
@@ -452,7 +451,7 @@ def puigcerver(input_size, d_model):
     cnn = BatchNormalization()(cnn)
     cnn = LeakyReLU(alpha=0.01)(cnn)
 
-    shape = cnn.get_shape()
+    shape = cnn.shape
     blstm = Reshape((shape[1], shape[2] * shape[3]))(cnn)
 
     blstm = Bidirectional(LSTM(units=256, return_sequences=True, dropout=0.5))(blstm)
@@ -508,7 +507,7 @@ def flor(input_size, d_model):
 
     cnn = MaxPooling2D(pool_size=(1, 2), strides=(1, 2), padding="valid")(cnn)
 
-    shape = cnn.get_shape()
+    shape = cnn.shape
     bgru = Reshape((shape[1], shape[2] * shape[3]))(cnn)
 
     bgru = Bidirectional(GRU(units=128, return_sequences=True, dropout=0.5))(bgru)
@@ -577,7 +576,7 @@ def puigcerver_octconv(input_size, d_model):
 
     x = _create_octconv_last_block([high, low], 80, alpha)
 
-    shape = x.get_shape()
+    shape = x.shape
     blstm = Reshape((shape[1], shape[2] * shape[3]))(x)
 
     blstm = Bidirectional(LSTM(units=256, return_sequences=True, dropout=0.5))(blstm)
