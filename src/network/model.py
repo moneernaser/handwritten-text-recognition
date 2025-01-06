@@ -241,10 +241,9 @@ class HTRModel:
 
         if verbose == 1:
             print("Model Predict")
-
         out = self.model.predict(x=x, batch_size=batch_size, verbose=verbose, steps=steps,
                                  callbacks=callbacks)
-
+        print(f"out shape: ${out.shape}")
         if not ctc_decode:
             return np.log(out.clip(min=1e-8)), []
 
@@ -265,21 +264,24 @@ class HTRModel:
             x_test = np.asarray(out[index:until])
             x_test_len = np.asarray([input_length for _ in range(len(x_test))])
             
-            # replacing original ctc decode with lower level one
-            # decode, log = K.ctc_decode(x_test,
-            #                            x_test_len,
-            #                            greedy=self.greedy,
-            #                            beam_width=self.beam_width,
-            #                            top_paths=self.top_paths)
-            decode, log = self.impl_ctc_decode(y_pred=x_test,
-                                       input_length=x_test_len,
+            
+            decode, log = K.ctc_decode(x_test,
+                                       x_test_len,
                                        greedy=self.greedy,
                                        beam_width=self.beam_width,
-                                       top_paths=self.top_paths,
-                                       merge_repeated=False)
+                                       top_paths=self.top_paths)
+            # replacing original ctc decode with lower level one
+            # decode, log = self.impl_ctc_decode(y_pred=x_test,
+            #                            input_length=x_test_len,
+            #                            greedy=self.greedy,
+            #                            beam_width=self.beam_width,
+            #                            top_paths=self.top_paths,
+            #                            merge_repeated=False)
 
             probabilities.extend([np.exp(x) for x in log])
-            decode = [[[int(p) for p in x if p != -1] for x in y] for y in decode]
+            #decode = [[[int(p) for p in x if p != -1] for x in y] for y in decode]
+            decode = [[[int(p) for p in x] for x in y] for y in decode]
+            
             predicts.extend(np.swapaxes(decode, 0, 1))
 
             steps_done += 1
