@@ -1,8 +1,3 @@
-"""
-Uses generator functions to supply train/test with data.
-Image renderings and text are created on the fly each time.
-"""
-
 from itertools import groupby
 
 import data.preproc as pp
@@ -117,7 +112,7 @@ class DataGenerator():
             x_test = self.dataset['test']['dt'][index:until]
             x_test = pp.normalization(x_test)
 
-            yield x_test
+            yield (x_test,)
 
 
 class Tokenizer():
