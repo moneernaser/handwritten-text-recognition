@@ -177,9 +177,6 @@ class HTRModel:
             steps_per_epoch=None,
             validation_steps=None,
             validation_freq=1,
-            max_queue_size=10,
-            workers=1,
-            use_multiprocessing=False,
             **kwargs):
         """
         Model training on data yielded (fit function has support to generator).
@@ -200,8 +197,7 @@ class HTRModel:
                              validation_data=validation_data, shuffle=shuffle,
                              class_weight=class_weight, sample_weight=sample_weight,
                              initial_epoch=initial_epoch, steps_per_epoch=steps_per_epoch,
-                             validation_steps=validation_steps, validation_freq=validation_freq, workers=workers,
-                             use_multiprocessing=use_multiprocessing, **kwargs)
+                             validation_steps=validation_steps, validation_freq=validation_freq, **kwargs)
         return out
         
     def impl_ctc_decode(self, y_pred, input_length, greedy, beam_width, top_paths, merge_repeated):
@@ -232,9 +228,6 @@ class HTRModel:
                 verbose=0,
                 steps=1,
                 callbacks=None,
-                max_queue_size=10,
-                workers=1,
-                use_multiprocessing=False,
                 ctc_decode=True):
         """
         Model predicting on data yielded (predict function has support to generator).
@@ -250,8 +243,7 @@ class HTRModel:
             print("Model Predict")
 
         out = self.model.predict(x=x, batch_size=batch_size, verbose=verbose, steps=steps,
-                                 callbacks=callbacks, max_queue_size=max_queue_size,
-                                 workers=workers, use_multiprocessing=use_multiprocessing)
+                                 callbacks=callbacks)
 
         if not ctc_decode:
             return np.log(out.clip(min=1e-8)), []
