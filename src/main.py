@@ -45,22 +45,31 @@ if __name__ == "__main__":
 
     parser.add_argument("--epochs", type=int, default=1000)
     parser.add_argument("--batch_size", type=int, default=16)
+    parser.add_argument("--binarize", type=str, default="False")
+    parser.add_argument("--rtl", type=str, required=True)
+    parser.add_argument("--scalefactor", type=float, default=1)
     args = parser.parse_args()
-
-    raw_path = os.path.join("..", "raw", args.source)
+    raw_path = os.path.join("raw", args.source)
+    binarize = args.binarize == "True"
+    scale_factor = args.scalefactor
+    rtl = args.rtl == "True"
+    print("binarize: ", binarize)
+    print("rtl: ", rtl)
     source_path = os.path.join("..", "data", f"{args.source}.hdf5")
     output_path = os.path.join("..", "output", args.source, args.arch)
-    target_path = os.path.join(output_path, "checkpoint_weights.hdf5")
-
-    input_size = (1024, 128, 1)
+    target_path = os.path.join(output_path, "checkpoint_weights_2.hdf5")
+    input_size = ((int)(1024 * scale_factor), (int)(64 * scale_factor), 1)
+    print("input_size: ", input_size)
     max_text_length = 128
-    charset_base = string.printable[:95]
+    #charset_base = string.printable[:95]
+    charset_base = 'ءآأإابتةثجحخدذرزسشصضطظعغفقكلمنؤهويىئ0123456789@:,.?!"()//\=-_#%$^&*+ '
 
     if args.transform:
         print(f"{args.source} dataset will be transformed...")
         ds = Dataset(source=raw_path, name=args.source)
         ds.read_partitions()
-        ds.save_partitions(source_path, input_size, max_text_length)
+        ds.save_partitions(source_path, input_size,
+                           max_text_length, binarize, rtl)
 
     elif args.cv2:
         with h5py.File(source_path, "r") as hf:

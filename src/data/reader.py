@@ -13,6 +13,8 @@ from glob import glob
 from tqdm import tqdm
 from data import preproc as pp
 from functools import partial
+import pandas as pd
+
 
 
 class Dataset():
@@ -36,7 +38,7 @@ class Dataset():
             self.dataset[y]['dt'] += dataset[y]['dt']
             self.dataset[y]['gt'] += dataset[y]['gt']
 
-    def save_partitions(self, target, image_input_size, max_text_length):
+    def save_partitions(self, target, image_input_size, max_text_length, binarize, rtl):
         """Save images and sentences from dataset"""
 
         os.makedirs(os.path.dirname(target), exist_ok=True)
@@ -54,15 +56,15 @@ class Dataset():
                 hf.create_dataset(f"{pt}/dt", data=dummy_image, compression="gzip", compression_opts=9)
                 hf.create_dataset(f"{pt}/gt", data=dummy_sentence, compression="gzip", compression_opts=9)
 
-        pbar = tqdm(total=total)
+       # pbar = tqdm(total=total)
         batch_size = 1024
 
         for pt in self.partitions:
-            for batch in range(0, len(self.dataset[pt]['gt']), batch_size):
+            for batch in range(0, len(self.dataset[pt]['dt']), batch_size):
                 images = []
 
                 with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:
-                    r = pool.map(partial(pp.preprocess, input_size=image_input_size),
+                    r = pool.map(partial(pp.preprocess, input_size=image_input_size, binarize=binarize, rtl=rtl),
                                  self.dataset[pt]['dt'][batch:batch + batch_size])
                     images.append(r)
                     pool.close()
@@ -70,9 +72,9 @@ class Dataset():
 
                 with h5py.File(target, "a") as hf:
                     hf[f"{pt}/dt"][batch:batch + batch_size] = images
-                    hf[f"{pt}/gt"][batch:batch + batch_size] = [s.encode() for s in self.dataset[pt]
-                                                                ['gt'][batch:batch + batch_size]]
-                    pbar.update(batch_size)
+                    hf[f"{pt}/gt"][batch:batch + batch_size] = [s.encode()
+                                                                for s in self.dataset[pt]['gt'][batch:batch + batch_size]]
+                    # pbar.update(batch_size)
 
     def _init_dataset(self):
         dataset = dict()
@@ -144,6 +146,39 @@ class Dataset():
 
         return partition
 
+    def _printed_arabic(self):
+        dataset_path = "/Users/i311821/Downloads/DATA_printed_boot_aljazaeir"
+        # the dataset has xlsx file that contains 2 columns: image and text. image is the path to the text line image and text is the text in the image
+        # text line images are located in same directory as the xlsx file.
+        # example:image: book\page101\line_1.png  text:فرنسا تحارب الإسلام علنا في الجزائر
+        # split the dataset into train, validate and test partitions with 60%, 20%, 20% respectively
+        dataset = self._init_dataset()
+        # read the xlsx file
+        # for each row in the xlsx file, add the image path to dt and the text to gt. if line does not contain text or does not contain path to image, skip it
+        # for each partition, add the (full) image path to dt and the text to gt
+
+        # read the xlsx file
+        xlsx_file_path = os.path.join(dataset_path, "printed_arabic.xlsx")
+        file_data = pd.read_excel(xlsx_file_path)
+        # filter out rows that do not have image path
+        file_data = file_data[file_data['image'].notna()]
+
+        # split the dataset into train, validate and test partitions with 60%, 20%, 20% respectively
+        train, validate, test = np.split(file_data.sample(
+            frac=1), [int(.6*len(file_data)), int(.8*len(file_data))])
+        partions_to_data = {
+            "train": train,
+            "valid": validate,
+            "test": test
+        }
+        for i in self.partitions:
+            for index, row in partions_to_data[i].iterrows():
+                dataset[i]['gt'].append(row['text'])
+                image_path = os.path.join(
+                    dataset_path, row['image'].replace("\\", "/"))
+                dataset[i]['dt'].append(os.path.join(dataset_path, image_path))
+        return dataset
+    
     def _hdsr14_cvl(self):
         """ICFHR 2014 Competition on Handwritten Digit String Recognition in Challenging Datasets dataset reader"""
 
@@ -345,6 +380,7 @@ class Dataset():
         dt = {'gt': list(data['gt']), 'dt': list(data['dt'])}
 
         for i in reversed(range(len(dt['gt']))):
+            print("image path: ", dt['dt'][i])
             text = pp.text_standardize(dt['gt'][i])
             strip_punc = text.strip(string.punctuation).strip()
             no_punc = text.translate(str.maketrans("", "", string.punctuation)).strip()

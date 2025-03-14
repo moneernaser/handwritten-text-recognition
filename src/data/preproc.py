@@ -87,14 +87,30 @@ Preprocess metodology based in:
 """
 
 
-def preprocess(img, input_size):
+def convert_to_binary(img):
+    (thresh, im_bw) = cv2.threshold(img, 128,
+                                    255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    return im_bw
+
+
+def convert_to_binary(img):
+    (thresh, im_bw) = cv2.threshold(img, 128,
+                                    255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    return im_bw
+
+
+def preprocess(img, input_size, binarize, rtl):
     """Make the process with the `input_size` to the scale resize"""
+    print("img: ", img)
 
     def imread(path):
         img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
         u, i = np.unique(np.array(img).flatten(), return_inverse=True)
-        background = int(u[np.argmax(np.bincount(i))])
-        return img, background
+        try:
+            background = int(u[np.argmax(np.bincount(i))])
+            return img, background
+        except:
+            print(f"path!!: {path}")
 
     if isinstance(img, str):
         img, bg = imread(img)
@@ -110,7 +126,8 @@ def preprocess(img, input_size):
             else:
                 boundbox[i] = int(boundbox[i])
 
-        img = np.asarray(img[boundbox[0]:boundbox[1], boundbox[2]:boundbox[3]], dtype=np.uint8)
+        img = np.asarray(img[boundbox[0]:boundbox[1],
+                         boundbox[2]:boundbox[3]], dtype=np.uint8)
 
     wt, ht, _ = input_size
     h, w = np.asarray(img).shape
@@ -122,7 +139,13 @@ def preprocess(img, input_size):
     target = np.ones([ht, wt], dtype=np.uint8) * bg
     target[0:new_size[1], 0:new_size[0]] = img
     img = cv2.transpose(target)
-    img = cv2.flip(img,0) ##
+
+    if rtl:
+        img = cv2.flip(img, 0)
+    # convert to binary
+    if binarize:
+        img = convert_to_binary(img)
+
     return img
 
 
@@ -153,6 +176,7 @@ def text_standardize(text):
 
     if text is None:
         return ""
+    print("text to be standardized: ", text)
 
     text = html.unescape(text).replace("\\n", "").replace("\\t", "")
 
