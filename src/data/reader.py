@@ -147,7 +147,7 @@ class Dataset():
         return partition
 
     def _printed_arabic(self):
-        dataset_path = "/Users/i311821/Downloads/DATA_printed_boot_aljazaeir"
+        dataset_path = "/Users/i311821/Downloads/DATA"
         # the dataset has xlsx file that contains 2 columns: image and text. image is the path to the text line image and text is the text in the image
         # text line images are located in same directory as the xlsx file.
         # example:image: book\page101\line_1.png  text:فرنسا تحارب الإسلام علنا في الجزائر
@@ -158,10 +158,12 @@ class Dataset():
         # for each partition, add the (full) image path to dt and the text to gt
 
         # read the xlsx file
-        xlsx_file_path = os.path.join(dataset_path, "printed_arabic.xlsx")
+        xlsx_file_path = os.path.join(dataset_path, "8k.xlsx")
         file_data = pd.read_excel(xlsx_file_path)
         # filter out rows that do not have image path
         file_data = file_data[file_data['image'].notna()]
+        # filter out all rows that do not have ".png" in the image path
+        file_data = file_data[file_data['image'].str.contains(".png")]
 
         # split the dataset into train, validate and test partitions with 60%, 20%, 20% respectively
         train, validate, test = np.split(file_data.sample(
@@ -177,6 +179,13 @@ class Dataset():
                 image_path = os.path.join(
                     dataset_path, row['image'].replace("\\", "/"))
                 dataset[i]['dt'].append(os.path.join(dataset_path, image_path))
+        # print information about the dataset
+        print("Dataset information")
+        print("Dataset path: ", dataset_path)
+        print("Number of images in the dataset: ", len(file_data))
+        print("Number of images in train partition: ", len(train))
+        print("Number of images in validate partition: ", len(validate))
+        print("Number of images in test partition: ", len(test))
         return dataset
     
     def _hdsr14_cvl(self):

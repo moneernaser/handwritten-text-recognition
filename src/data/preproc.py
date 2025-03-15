@@ -113,7 +113,11 @@ def preprocess(img, input_size, binarize, rtl):
             print(f"path!!: {path}")
 
     if isinstance(img, str):
-        img, bg = imread(img)
+        try:
+            img, bg = imread(img)
+        except:
+            print(f"img failed: {img}")
+            raise ValueError("Image not found")
 
     if isinstance(img, tuple):
         image, boundbox = img
